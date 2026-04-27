@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>💰 Predicted Price</h2>
+
+<div class="price-box">
+    <h3>₹ {{ price.predicted_price }}</h3>
+    <p>Range: ₹ {{ price.lower }} - ₹ {{ price.upper }}</p>
+</div>
+
+<hr>
+
+<!-- SORT DROPDOWN -->
+<form method="POST" action="/predict" class="form">
+    <input type="hidden" name="city" value="{{ city }}">
+    <input type="hidden" name="bhk" value="{{ request.form.get('bhk', '') }}">
+    <input type="hidden" name="bathrooms" value="{{ request.form.get('bathrooms', '') }}">
+    <input type="hidden" name="balconies" value="{{ request.form.get('balconies', '') }}">
+    <input type="hidden" name="area" value="{{ request.form.get('area', '') }}">
+    <input type="hidden" name="age" value="{{ request.form.get('age', '') }}">
+    <input type="hidden" name="amenities" value="{{ request.form.get('amenities', '') }}">
+    <input type="hidden" name="budget" value="{{ request.form.get('budget', '') }}">
+
+    <label>Sort By:</label>
+    <select name="sort">
+        <option value="match">Match %</option>
+        <option value="area">Area</option>
+    </select>
+
+    <button type="submit">Sort</button>
+</form>
+
+<hr>
+
+<h2>🏠 Recommended Properties</h2>
+
+<div class="cards">
+    {% for p in results %}
+    <div class="card">
+
+        <div class="card-header">
+            <h3>{{ p.BHK }} BHK</h3>
+            <span class="match-badge">{{ p.MatchPercent }}%</span>
+        </div>
+
+        <p><b>Area:</b> {{ p.CarpetArea_sqft }} sqft</p>
+        <p><b>Price:</b> ₹ {{ "{:,.0f}".format(p.Price_INR) }}</p>
+        <p><b>Amenities:</b> {{ p.AmenitiesCount }}</p>
+        <p><b>Affordability:</b> {{ p.AffordabilityLabel }}</p>
+        <p>
+            <b>Accessibility:</b>
+            {% if p.AccessibilityScore > 0.7 %}
+            Good 🟢
+            {% elif p.AccessibilityScore > 0.4 %}
+            Moderate 🟡
+            {% else %}
+            Poor 🔴
+            {% endif %}
+        </p>
+        <p>
+            <b>RERA:</b>
+            {% if p.IsRERARegistered %}
+            <span class="rera-approved">Approved ✅</span>
+            {% else %}
+            <span class="rera-not">Not Approved ❌</span>
+            {% endif %}
+        </p>
+
+        <span class="match-badge
+    {% if p.MatchPercent > 80 %}match-high
+    {% elif p.MatchPercent > 50 %}match-mid
+    {% else %}match-low
+    {% endif %}
+">
+            {{ p.MatchPercent }}%
+        </span>
+
+
+        <!-- FIXED BUTTON -->
+        <button class="view-btn" onclick='openModal({{ p | tojson | safe }})'>
+            View Details
+        </button>
+
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ================= MODAL ================= -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+
+        <span class="close" onclick="closeModal()">&times;</span>
+
+        <h2 id="modal-title"></h2>
+
+        <div id="modal-details" style="margin-bottom: 10px;"></div>
+
+        <div id="map" style="height: 300px;"></div>
+
+    </div>
+</div>
+
+<!-- ================= LEAFLET ================= -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+
+    let map;
+
+    function openModal(p) {
+
+        document.getElementById("modal").style.display = "block";
+
+        // Title
+        document.getElementById("modal-title").innerHTML = p.BHK + " BHK";
+
+        // Details
+        document.getElementById("modal-details").innerHTML =
+            "<b>BHK:</b> " + p.BHK + "<br>" +
+            "<b>Bathrooms:</b> " + p.Bathrooms + "<br>" +
+            "<b>Balconies:</b> " + p.Balconies + "<br>" +
+            "<b>Carpet Area:</b> " + p.CarpetArea_sqft + " sqft<br>" +
+            "<b>Built-up Area:</b> " + p.BuiltUpArea_sqft + " sqft<br>" +
+            "<b>Super Built-up:</b> " + p.SuperBuiltUpArea_sqft + " sqft<br>" +
+            "<b>Floor:</b> " + p.Floor + " / " + p.TotalFloors + "<br>" +
+            "<b>Furnishing:</b> " + p.Furnishing + "<br>" +
+            "<b>Parking:</b> " + p.Parking + "<br>" +
+            "<b>Building Type:</b> " + p.BuildingType + "<br>" +
+            "<b>Facing:</b> " + p.Facing + "<br>" +
+            "<b>Amenities:</b> " + p.AmenitiesCount + "<br>" +
+            "<b>Price:</b> ₹ " + p.Price_INR + "<br>" +
+            "<b>Match:</b> " + p.MatchPercent + "%<br>" +
+            "<b>Accessibility:</b> " + p.AccessibilityScore + "<br>" +
+            "<b>Affordability:</b> " + p.AffordabilityLabel + "<br>" +
+            "<b>RERA:</b> " + (p.IsRERARegistered ? "Approved ✅" : "Not Approved ❌");
+
+        // Map rendering fix
+        setTimeout(() => {
+
+            if (map) {
+                map.remove();
+            }
+
+            map = L.map('map').setView([p.Latitude, p.Longitude], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            L.marker([p.Latitude, p.Longitude])
+                .addTo(map)
+                .bindPopup(p.BHK + " BHK")
+                .openPopup();
+
+        }, 200);
+    }
+
+    function closeModal() {
+        document.getElementById("modal").style.display = "none";
+    }
+
+    // close on outside click
+    window.onclick = function (event) {
+        let modal = document.getElementById("modal");
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Find Your Ideal Property</h2>
+
+<form action="/predict" method="POST" class="form">
+
+    <!-- City Dropdown -->
+    <label>City</label>
+    <select name="city" required>
+        <option value="">Select City</option>
+        {% for city in cities %}
+        <option value="{{ city }}">{{ city }}</option>
+        {% endfor %}
+    </select>
+
+    <label>BHK</label>
+    <input type="number" name="bhk" required>
+
+    <label>Bathrooms</label>
+    <input type="number" name="bathrooms" required>
+
+    <label>Balconies</label>
+    <input type="number" name="balconies" required>
+
+    <label>Area (sqft)</label>
+    <input type="number" name="area" required>
+
+    <label>Property Age (years)</label>
+    <input type="number" name="age" required>
+
+    <label>Amenities Count</label>
+    <input type="number" name="amenities" required>
+
+    <label>Budget (₹ in Lakhs)</label>
+    <input type="number" name="budget" required>
+
+    <!-- Map -->
+    <label>Select Location on Map</label>
+    <div id="map" style="height: 300px;"></div>
+
+    <!-- Hidden fields -->
+    <input type="hidden" name="lat" id="lat">
+    <input type="hidden" name="lon" id="lon">
+
+    <button type="submit">🔍 Find Properties</button>
+
+</form>
+<!-- Leaflet Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+    var map = L.map('map').setView([20.5937, 78.9629], 5); // India center
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    var marker;
+
+    map.on('click', function (e) {
+        var lat = e.latlng.lat;
+        var lon = e.latlng.lng;
+
+        document.getElementById("lat").value = lat;
+        document.getElementById("lon").value = lon;
+
+        if (marker) {
+            map.removeLayer(marker);
+        }
+
+        marker = L.marker([lat, lon]).addTo(map);
+    });
+</script>
+
+{% endblock %}
