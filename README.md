@@ -124,11 +124,3 @@ SmartHome-Finder/
 5. Click "Find Properties"
 6. View predicted price and recommendations
 7. Sort and explore properties
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Author
-
-**Diwakar Yadav**
