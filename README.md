@@ -17,36 +17,6 @@ An intelligent property recommendation system using Machine Learning and Flask.
 - **ML**: scikit-learn, pandas, numpy
 - **Mapping**: Leaflet.js
 
-## Installation
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/diwakar221718/SmartHome-Finder.git
-cd SmartHome-Finder
-```
-
-2. **Create virtual environment**
-```bash
-python -m venv venv
-venv\Scripts\activate  # On Windows
-source venv/bin/activate  # On macOS/Linux
-```
-
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-4. **Run the application**
-```bash
-python main.py
-```
-
-5. **Open in browser**
-```
-http://localhost:5000
-```
-
 ## How It Works
 
 ### Step 1: User Input
@@ -113,6 +83,35 @@ SmartHome-Finder/
 ├── static/
 │   └── style.css
 └── requirements.txt
+```
+## Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/diwakar221718/SmartHome-Finder.git
+cd SmartHome-Finder
+```
+
+2. **Create virtual environment**
+```bash
+python -m venv venv
+venv\Scripts\activate  # On Windows
+source venv/bin/activate  # On macOS/Linux
+```
+
+3. **Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+4. **Run the application**
+```bash
+python main.py
+```
+
+5. **Open in browser**
+```
+http://localhost:5000
 ```
 
 ## Usage Example
